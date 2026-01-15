@@ -1,11 +1,8 @@
-venv
-*.mp4
-
-# Environment variables
-.env
-.env.local
-secrets/
-client_secrets.json
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv
 
 # Python
 __pycache__/
@@ -13,6 +10,9 @@ __pycache__/
 *$py.class
 *.so
 .Python
+*.egg-info/
+*.egg
+.installed.cfg
 build/
 develop-eggs/
 dist/
@@ -25,37 +25,38 @@ parts/
 sdist/
 var/
 wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual environments
-venv/
-env/
-ENV/
-.venv
-
-# IDE
+# IDE & Editor
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
 
-# Data files
+# Credentials & Environment
+.env
+.env.local
+secrets/
+client_secrets.json
+*.key
+*.pem
+.env.*.local
+
+# Media
+*.mp4
+
+# Data & Logs
 *.pkl
 *.pickle
 *.csv
 *.json
 output/
 temp/
-testing/
-
-
-# Logs
 *.log
 logs/
+
+# Testing
+testing/
 
 # OS
 .DS_Store
