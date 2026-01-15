@@ -143,3 +143,38 @@ def get_video_dimensions(video_path):
 
 
 # print(extract_audio_for_asr("../../test.mp4"))
+
+
+def find_clip_times(words_array, phrases):
+    start_time = None
+    end_time = None
+    start_index = None
+    end_index = None
+
+    phrase_index = 0
+    phrase_words = phrases[phrase_index].split()
+    match_index = 0
+
+    for i, w in enumerate(words_array):
+        if w["word"].lower() == phrase_words[match_index].lower():
+            if match_index == 0 and start_time is None:
+                start_time = w["start"]
+                start_index = i
+
+            match_index += 1
+
+            if match_index == len(phrase_words):
+                end_time = w["end"]
+                end_index = i
+
+                phrase_index += 1
+                if phrase_index == len(phrases):
+                    break
+
+                phrase_words = phrases[phrase_index].split()
+                match_index = 0
+
+    return start_time, end_time, start_index, end_index
+
+
+extract_audio_for_asr("test2_trimmed.mp4")

@@ -1,1 +1,5 @@
-# Facial Context aware cropping
+
+
+def ContextAwareCrop(video_path):
+    pass
+
