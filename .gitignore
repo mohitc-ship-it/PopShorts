@@ -1,1 +1,10 @@
 secrets/
+
+# Virtual Environments
+venv
+env/
+ENV/
+.venv/
+.DS_STORE
+
+testing

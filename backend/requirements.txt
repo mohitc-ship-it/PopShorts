@@ -6,3 +6,11 @@ google-auth
 google-auth-oauthlib 
 google-auth-httplib2
 
+opencv-python
+mediapipe
+numpy
+pyannote.audio
+torch
+ffmpeg-python
+pyannote.audio<4.0
+huggingface_hub<0.19
