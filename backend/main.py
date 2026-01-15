@@ -17,6 +17,8 @@ def process_video(file_path,upload=False):
     for word in word_array:
         script += f"{word} "
 
+    shorts_details = llm_structured("extract chunks of 60-90seconds , where they talk about either there personal story or suggestion ")
+
     # trimmed_path = trim_video(file_path, start_time=0, end_time=60)
 
     llm_structured()
