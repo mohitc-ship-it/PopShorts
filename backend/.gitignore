@@ -1,3 +1,6 @@
+venv
+*.mp4
+
 # Environment variables
 .env
 .env.local
@@ -47,6 +50,8 @@ ENV/
 *.json
 output/
 temp/
+testing/
+
 
 # Logs
 *.log
@@ -55,3 +60,4 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
