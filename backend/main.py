@@ -28,12 +28,12 @@ def process_video(file_path, upload=False, mode="sequential",number=4):
     
     # audio_path = "audio.wav"
 
-    # word_array = get_word_array(audio_path)
+    word_array = get_word_array(audio_path)
 
-    # with open(os.path.join(".", "word_array.json"), "w") as f:
-    #     json.dump(word_array, f)
+    with open(os.path.join("shorts", "word_array.json"), "w") as f:
+        json.dump(word_array, f)
 
-    with open(os.path.join("word_array.json"), "r") as f:
+    with open(os.path.join("shorts", "word_array.json"), "r") as f:
         word_array = json.load(f)
 
     script = ""

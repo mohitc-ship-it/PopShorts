@@ -8,7 +8,7 @@ google-auth-httplib2
 
 opencv-python
 mediapipe
-numpy
+numpy<2.0.0
 pyannote.audio
 torch
 ffmpeg-python
