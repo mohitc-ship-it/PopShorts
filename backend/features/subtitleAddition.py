@@ -8,17 +8,18 @@ from typing import List, Dict, Optional
 # ---------------------------------------------------
 
 def _escape_ffmpeg_value(s: str) -> str:
-    if not s:
-        return ""
-    return (
-        str(s)
-        .replace("\\", "\\\\")
-        .replace(":", "\\:")
-        .replace("'", "\\'")
-        .replace("%", "\\%")
-        .replace(",", "\\,")
-        .replace("\n", "\\n")
-    )
+    # if not s:
+    #     return ""
+
+    s = str(s)
+    # Escape backslash first
+    s = s.replace("'", "")
+    s = s.replace('"', '')
+    s = s.replace('/', '')
+    s = s.replace('\\', "")
+
+    return s
+
 
 def _hex_rgb(col) -> str:
     if not col:
@@ -161,7 +162,7 @@ def add_subtitles(
 
 if __name__ == "__main__":
     words = [
-        {"word": "This", "start": 0.2, "end": 0.5},
+        {"word": "Thi's", "start": 0.2, "end": 0.5},
         {"word": "is", "start": 0.5, "end": 0.7},
         {"word": "a", "start": 0.7, "end": 0.9},
         {"word": "reel", "start": 0.9, "end": 1.3},
