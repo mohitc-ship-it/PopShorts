@@ -6,17 +6,13 @@ import os
 load_dotenv()
 
 api_key = os.getenv("ASSEMBLYAI_API_KEY")
-
 def get_word_array(audio_file: str) -> Optional[List[Dict]]:
     """
-    Returns array of words with timestamps and confidence.
-    
-    Args:
-        audio_file: URL or local path to audio file
-        api_key: AssemblyAI API key
+    Returns array of words with timestamps in seconds and confidence.
     
     Returns:
-        List of dicts: [{"text": "word", "start": 1234, "end": 1456, "confidence": 0.98}]
+        List of dicts:
+        [{"word": "hello", "start": 1.234, "end": 1.456, "confidence": 0.98}]
     """
     aai.settings.api_key = api_key
     transcriber = aai.Transcriber()
@@ -31,13 +27,14 @@ def get_word_array(audio_file: str) -> Optional[List[Dict]]:
     words_array = []
     for word in transcript.words:
         words_array.append({
-            "text": word.text.strip(),
-            "start": word.start,  # milliseconds
-            "end": word.end,      # milliseconds
+            "word": word.text.strip(),
+            "start": word.start / 1000.0,  # seconds
+            "end": word.end / 1000.0,      # seconds
             "confidence": word.confidence
         })
     
     return words_array
+
 
 # Usage
 # words = get_word_array("audio.wav", "")

@@ -14,7 +14,7 @@ def llm_query(prompt: str) -> str:
     Simple Gemini 2 text generation
     """
     response = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
+        model="gemini-2.5-flash",
         contents=prompt,
     )
 
@@ -25,7 +25,7 @@ def llm_query(prompt: str) -> str:
 def llm_structured(
     prompt: str,
     output_model: BaseModel,
-    model: str = "gemini-2.5-flash-lite",
+    model: str = "gemini-2.5-flash",
 ):
     """
     Gemini structured output using native Pydantic JSON schema

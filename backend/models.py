@@ -2,10 +2,10 @@ from typing import List
 from pydantic import BaseModel, Field
 
 class ContentIdea(BaseModel):
-    topic: str = Field(..., description="Main topic of the short or video")
-    hook: str = Field(..., description="Hook style like curiosity, shock, controversy, etc")
-    quote: str = Field(..., description="Powerful or viral quote used in the content")
-    why: str = Field(..., description="Why this idea or quote will work")
+    topic: str = Field(description="Main topic of the short or video")
+    hook: str = Field(description="Hook style like curiosity, shock, controversy, etc")
+    quote: str = Field(description="Powerful or viral quote used in the content")
+    why: str = Field(description="Why this idea or quote will work")
 
 class ContentIdeasList(BaseModel):
     contentList: List[ContentIdea]

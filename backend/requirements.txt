@@ -12,5 +12,16 @@ numpy
 pyannote.audio
 torch
 ffmpeg-python
-pyannote.audio<4.0
+pyannote.audio===3.1.1
 huggingface_hub<0.19
+
+torchcodec --no-binary torchcodec
+
+
+
+
+torch==2.1.2 
+torchaudio==2.1.2 
+torchvision==0.16.2
+
+google-genai

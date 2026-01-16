@@ -30,15 +30,17 @@
 
 #         return faces
 
+import os
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 class FaceTracker:
     def __init__(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(current_dir, "..", "..", "models", "blaze_face_short_range.tflite")
         base_options = python.BaseOptions(
-            # model_asset_path="models/blaze_face_short_range.tflite"
-            model_asset_path="/Users/consultadd/Desktop/Hackathon/PopShorts/backend/models/blaze_face_short_range.tflite"
+            model_asset_path=model_path
         )
 
         options = vision.FaceDetectorOptions(
