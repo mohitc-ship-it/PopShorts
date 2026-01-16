@@ -36,6 +36,7 @@ def generate_context_aware_crop(video_path: str, output_path: str):
     )
 
     frame_idx = 0
+    last_speaker_id = None  # Track the last person who spoke
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -46,15 +47,24 @@ def generate_context_aware_crop(video_path: str, output_path: str):
 
         faces = face_tracker.detect_and_track(frame)
         active_speaker_id = speaker_detector.get_stable_speaker(time_sec, faces)
-        active_speaker_id = None
 
+        # Update last_speaker_id when someone is speaking
         if active_speaker_id is not None:
+            last_speaker_id = active_speaker_id
+
+        # Determine which speaker to focus on
+        if active_speaker_id is not None:
+            # Someone is speaking, focus on them
             target_crop = cropper.get_crop(frame, faces, active_speaker_id)
             smooth_crop = camera.smooth(target_crop)
             portrait_frame = cropper.apply_crop(frame, smooth_crop)
+        elif last_speaker_id is not None:
+            # No one speaking, but we have a last speaker - keep focus on them
+            target_crop = cropper.get_crop(frame, faces, last_speaker_id)
+            smooth_crop = camera.smooth(target_crop)
+            portrait_frame = cropper.apply_crop(frame, smooth_crop)
         else:
-            # print("no speaker detected")
-            # No speaker detected, crop based on largest face
+            # No one has spoken yet (start of video), crop based on largest face
             target_crop = cropper.get_default_crop(frame, faces)
             smooth_crop = camera.smooth(target_crop)
             portrait_frame = cropper.apply_crop(frame, smooth_crop)
