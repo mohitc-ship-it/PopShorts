@@ -1,12 +1,15 @@
 # pipeline
 import os
 import json
+import uuid
 from utils.llm import llm_query, llm_structured
 from utils.transcription import get_word_array
 from utils.videoProcessing import get_video_dimensions, extract_audio_for_asr, extract_audio, trim_video, find_clip_times, attach_audio_segment, combine_videos
 from features.subtitleAddition import add_subtitles
 from models import ContentIdeasList, ShortScript, ShortsExtractionResult, ShortMetadata
 from features.context_crop.contextAwareCrop import generate_context_aware_crop
+from features.autoUpload import upload_short
+import pickle
 
 
 def process_video(file_path, upload=False, mode="sequential",number=4):
@@ -15,7 +18,14 @@ def process_video(file_path, upload=False, mode="sequential",number=4):
 
     # width, height = get_video_dimensions(file_path)
 
-    audio_path = extract_audio_for_asr(file_path)
+    audio_uuid = str(uuid.uuid4())
+    audio_path = os.path.join("shorts", f"{audio_uuid}_audio.wav")
+    audio_path = extract_audio_for_asr(file_path,audio_path)
+    
+    # Save audio to shorts folder with UUID
+  
+    temp_files.append(audio_path)
+    
     # audio_path = "audio.wav"
 
     # word_array = get_word_array(audio_path)
@@ -260,9 +270,42 @@ Make the metadata engaging and optimized for discoverability on YouTube."""
             short['description'] = f"{short['reason']} #{short['topic'].replace(' ', '')}"
             short['tags'] = short['topic']
     
+
+    # Upload shorts if requested
+    if upload:
+        print("📤 Uploading shorts to YouTube...")
+        try:
+            # Load credentials from secrets
+            # from google.auth.transport.requests import Request
+            # from google.oauth2.credentials import Credentials
+            
+            # secrets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "secrets", "client_secrets.json")
+            # credentials_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "secrets", "credentials.json")
+            
+            # if os.path.exists(credentials_path):
+            #     creds = Credentials.from_authorized_user_file(credentials_path)
+            #     if creds.expired:
+            #         creds.refresh(Request())
+            with open(os.getenv("AUTO_UPLOAD_PKL"), "rb") as f:
+                credentials = pickle.load(f)
+
+            for index, short in enumerate(final_shorts):
+                url = upload_short(
+                    credentials=credentials,
+                    video_path=short['subtitleAddedVideo'],
+                    title=short.get('title', short.get('topic', 'Untitled')),
+                    description=short.get('description', short.get('reason', '')),
+                    tags=short.get('tags', '').split(', ') if isinstance(short.get('tags', ''), str) else short.get('tags', [])
+                )
+                final_shorts[index]['url'] = url
+                print(f"✅ Uploaded: {short.get('title', 'Untitled')}")
+            else:
+                print("⚠️ Credentials not found. Skipping upload.")
+        except Exception as e:
+            print(f"❌ Error uploading shorts: {e}")
+
     with open(os.path.join("shorts", "shorts.json"), "w") as f:
         json.dump(final_shorts, f)
-
     # Cleanup temporary videos
     print("🧹 Cleaning up temporary videos...")
     for video_path in temp_files:
@@ -272,6 +315,7 @@ Make the metadata engaging and optimized for discoverability on YouTube."""
                 print(f"Deleted temp file: {video_path}")
             except Exception as e:
                 print(f"Error deleting {video_path}: {e}")
+    return final_shorts
 
     # add_subtitles("test.mp4", words, style, "out_line.mp4", mode="line")
     

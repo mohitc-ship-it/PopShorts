@@ -154,6 +154,7 @@ def add_subtitles(
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         raise RuntimeError(r.stderr)
+    return output_path
 
 
 # ---------------------------------------------------

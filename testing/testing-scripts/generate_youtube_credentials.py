@@ -1,6 +1,10 @@
+import os
 import pickle
 from pathlib import Path
 from google_auth_oauthlib.flow import Flow
+
+# Allow http://localhost for OAuth 2.0 local development
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 
@@ -31,6 +35,7 @@ credentials = flow.credentials
 
 # 🔧 FIX: save to correct absolute path
 SECRETS_DIR = BASE_DIR / "secrets"
+print("sectrat dir ", SECRETS_DIR)
 SECRETS_DIR.mkdir(exist_ok=True)
 
 with open(SECRETS_DIR / "youtube_credentials.pkl", "wb") as f:

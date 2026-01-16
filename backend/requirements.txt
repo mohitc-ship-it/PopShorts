@@ -17,6 +17,10 @@ huggingface_hub<0.19
 
 torchcodec --no-binary torchcodec
 
+fastapi
+uvicorn[standard]
+python-multipart
+
 
 
 
@@ -25,3 +29,7 @@ torchaudio==2.1.2
 torchvision==0.16.2
 
 google-genai
+
+uvicorn
+fastapi
+python-multipart
