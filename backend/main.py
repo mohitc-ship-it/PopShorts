@@ -5,18 +5,18 @@ from utils.llm import llm_query, llm_structured
 from utils.transcription import get_word_array
 from utils.videoProcessing import get_video_dimensions, extract_audio_for_asr, extract_audio, trim_video, find_clip_times, attach_audio_segment, combine_videos
 from features.subtitleAddition import add_subtitles
-from models import ContentIdeasList, ShortScript
+from models import ContentIdeasList, ShortScript, ShortsExtractionResult, ShortMetadata
 from features.context_crop.contextAwareCrop import generate_context_aware_crop
 
 
-def process_video(file_path, upload=False, mode="sequential"):
+def process_video(file_path, upload=False, mode="sequential",number=4):
 
     temp_files = []
 
     # width, height = get_video_dimensions(file_path)
 
-    # audio_path = extract_audio_for_asr(file_path)
-    audio_path = "audio.wav"
+    audio_path = extract_audio_for_asr(file_path)
+    # audio_path = "audio.wav"
 
     # word_array = get_word_array(audio_path)
 
@@ -30,72 +30,82 @@ def process_video(file_path, upload=False, mode="sequential"):
     for word in word_array:
         script += f"{word['word']} "
 
+    output_format = """ {
+    "contentList": [
+        {
+        "topic": "...",
+        "vitality_score": 0,
+        "reason": "...",
+        "quote": "..."
+        }
+    ]
+    }"""
+    shorts_prompt = f"""SYSTEM:
+    You are a YouTube Shorts content extraction engine.
+    You are NOT allowed to invent, infer, paraphrase, or summarize.
+    You must ONLY extract exact words that already exist in the provided script.
 
-    shorts_details = llm_structured(f"""SYSTEM:
-You are a YouTube Shorts content strategist.
-Your job is to identify moments in a podcast that could become viral short-form clips.
+    USER:
+    You are given the FULL TRANSCRIPT of a long-form video or podcast.
 
-USER:
-Here is the full transcript of a podcast episode:
+    Your task is to extract SHORT-FORM CONTENT IDEAS suitable for YouTube Shorts.
+    We want {number} of shorts.
 
-{script}
+    INPUT:
+    Full Script:
+    {script}
 
-Return a list of 10–15 candidate clip ideas.
+    TASK:
+    From the script, extract 10–15 SHORTS candidates.
 
-For each clip return:
-- topic
-- why it is interesting
-- the exact quote that should be used (verbatim)
-- the emotion or curiosity hook (e.g. shock, insight, controversy, humor)
+    For EACH short, return the following fields:
 
-Do not summarize. Use exact words from the transcript.
-Return JSON only.
-""",ContentIdeasList)
+    1. topic  
+    - A concise hook-style title
+    - Must be inferred ONLY from the extracted quote (no new ideas)
 
-    print("shorts ", shorts_details)
-    contentList = shorts_details.contentList
+    2. virality_score  
+    - Integer from 1–10
+    - Based on emotional impact, clarity, and short-form virality
+    - Do NOT justify the score with new statements
 
-    # shorts = []
-    # for index,content in enumerate(contentList):
-    #     if index>1:
-    #         break
-    #     print("taking each content ", content)
-    #     topic = content.topic
-    #     quote = content.quote
+    3. reason  
+    - Why this clip works as a short
+    - Must ONLY reference what is explicitly said in the quote
+    - No external interpretation or assumptions
 
+    4. quote  
+    - EXACT words copied VERBATIM from the script
+    - No paraphrasing
+    - No added words
+    - Must be continuous text from the script (no stitching from different places)
 
-    #     short = llm_structured(f"""SYSTEM:
-    # You are a YouTube Shorts scriptwriter.
+    
+    5. content_category  
+    type of content like educative, controversial or other types.
 
-    # USER:
-    # Create a 160-180 words short-form video script using ONLY the words from the transcript.
+    RULES (VERY IMPORTANT):
+    - ❌ No random statements
+    - ❌ No paraphrasing
+    - ❌ No summarization
+    - ❌ No words outside the script
+    - ✅ Use ONLY exact text spans from the script
+    - ✅ If something is not explicitly stated, DO NOT include it
+    - ✅ Quotes must be suitable for a 15–60 second short when spoken
 
-    # Base it on this clip idea:
+    OUTPUT FORMAT:
+    Return JSON ONLY in the following structure:
 
-    # Topic: {topic}
-    # Core Quote: "{quote}"
+    {output_format}
+    """ 
 
-    # extract the exact words that should be used (verbatim) from script 
+    print("final shorts propmpt ,. ", shorts_prompt)
+    shorts = llm_structured(shorts_prompt,ShortsExtractionResult)
 
-    # {script}
+    shorts = shorts.contentList
 
-    # Rules:
-    # - You must only use words that appear in the transcript
-    # - Do not paraphrase
-    # - You may reorder or remove filler words
-    # - Make it flow like a short-form viral clip
-
-    # Return:
-    # - final_short_text
-    # - list of phrases in the order they appear
-    # JSON only.
-    # """,ShortScript)
-
-    # shorts.append(short)
-
-
-    # print("final shorts content . ", shorts)
-    shorts = [ShortScript(final_short_text="You think about a person like that. You think of them as in this, like, static, fully formed version, right? You don't usually get to see. You went into so much depth about your rise and fall. It wasn't like a straight linear process. You see a guy who runs eight 100 mile races eight weekends in a row. It's an insane accomplishment. I fell on my ass. I started from scratch again. Scratch became my friend. Just a real raw version of how my life was. You're so honest about your vulnerabilities. For people that see someone who's a beast, who's done great things, you assume they're different than you. But then you hear about your insecurities and your pitfalls, and you realize, those are the same things that go wrong with me. Maybe I have that inside of me. We all have a jacked up life in one way or another. Life is one big psychological warfare that you play on yourself.", phrases=['You think about a person like that.', 'You think of them as in this, like, static,', 'fully formed version, right?', "You don't usually get to see.", 'You went into so much depth', 'about your rise and fall.', "It wasn't like a straight linear process.", 'You see a guy who runs', 'eight 100 mile races', 'eight weekends in a row.', "It's an insane accomplishment.", 'I fell on my ass.', 'I started from scratch again.', 'Scratch became my friend.', 'Just a real raw version of how my life was.', "You're so honest about your vulnerabilities.", "For people that see someone who's a beast,", "who's done great things,", "you assume they're different than you.", 'But then you hear about your insecurities', 'and your pitfalls,', 'and you realize,', 'those are the same things', 'that go wrong with me.', 'Maybe I have that inside of me.', 'We all have a jacked up life', 'in one way or another.', 'Life is one big psychological warfare', 'that you play on yourself.'])]
+    print("final shorts content . ", shorts)
+    # shorts = [ShortScript(quote="You think about a person like that. You think of them as in this, like, static, fully formed version, right? You don't usually get to see. You went into so much depth about your rise and fall. It wasn't like a straight linear process. You see a guy who runs eight 100 mile races eight weekends in a row. It's an insane accomplishment. I fell on my ass. I started from scratch again. Scratch became my friend. Just a real raw version of how my life was. You're so honest about your vulnerabilities. For people that see someone who's a beast, who's done great things, you assume they're different than you. But then you hear about your insecurities and your pitfalls, and you realize, those are the same things that go wrong with me. Maybe I have that inside of me. We all have a jacked up life in one way or another. Life is one big psychological warfare that you play on yourself.", phrases=['You think about a person like that.', 'You think of them as in this, like, static,', 'fully formed version, right?', "You don't usually get to see.", 'You went into so much depth', 'about your rise and fall.', "It wasn't like a straight linear process.", 'You see a guy who runs', 'eight 100 mile races', 'eight weekends in a row.', "It's an insane accomplishment.", 'I fell on my ass.', 'I started from scratch again.', 'Scratch became my friend.', 'Just a real raw version of how my life was.', "You're so honest about your vulnerabilities.", "For people that see someone who's a beast,", "who's done great things,", "you assume they're different than you.", 'But then you hear about your insecurities', 'and your pitfalls,', 'and you realize,', 'those are the same things', 'that go wrong with me.', 'Maybe I have that inside of me.', 'We all have a jacked up life', 'in one way or another.', 'Life is one big psychological warfare', 'that you play on yourself.'])]
     final_shorts = []
     for index, short in enumerate(shorts):
         short_id_base = f"short_{index}"
@@ -111,25 +121,25 @@ Return JSON only.
 
         if mode == "sequential":
             # Attempt to find the full sequential text
-            full_text = " ".join(short.phrases)
+            full_text = short.quote
             start_time, end_time, start_index, end_index = find_clip_times(word_array, full_text)
             
-            # Fallback if full sequence not matched exactly: use first and last phrase boundaries
-            if start_time is None:
-                # Try finding just the text block itself first if available
-                if short.final_short_text:
-                     start_time, end_time, start_index, end_index = find_clip_times(word_array, short.final_short_text)
+            # # Fallback if full sequence not matched exactly: use first and last phrase boundaries
+            # if start_time is None:
+            #     # Try finding just the text block itself first if available
+            #     if short.quote:
+            #          start_time, end_time, start_index, end_index = find_clip_times(word_array, short.quote)
                 
-                if start_time is None:
-                    s_t, _, s_i, _ = find_clip_times(word_array, short.phrases[0])
-                    _, e_t, _, e_i = find_clip_times(word_array, short.phrases[-1])
-                    if s_t is not None and e_t is not None:
-                        start_time, end_time = s_t, e_t
-                        start_index, end_index = s_i, e_i
+            #     if start_time is None:
+            #         s_t, _, s_i, _ = find_clip_times(word_array, short.phrases[0])
+            #         _, e_t, _, e_i = find_clip_times(word_array, short.phrases[-1])
+            #         if s_t is not None and e_t is not None:
+            #             start_time, end_time = s_t, e_t
+            #             start_index, end_index = s_i, e_i
             
-            if start_time is None:
-                print(f"Could not find timestamps for sequential short {index}")
-                continue
+            # if start_time is None:
+            #     print(f"Could not find timestamps for sequential short {index}")
+            #     continue
 
             trimmed_path = trim_video(file_path, start_time, end_time, os.path.join("shorts", f"{short_id_base}_seq_trim.mp4"))
             temp_files.append(trimmed_path)
@@ -161,8 +171,11 @@ Return JSON only.
             )
 
             final_shorts.append({
-                "final_short_text": short.final_short_text,
-                "phrases": short.phrases,
+                "quote": short.quote,
+                "virality_score":short.virality_score,
+                "content_category":short.content_category,
+                "reason":short.reason,
+                "topic":short.topic,
                 "start_time": start_time,
                 "end_time": end_time,
                 "trimmed_path": trimmed_path,
@@ -213,10 +226,39 @@ Return JSON only.
                 combine_videos(clips_to_combine, final_combined_video)
                 
                 final_shorts.append({
-                    "final_short_text": short.final_short_text,
+                    "quote": short.quote,
                     "phrases": short.phrases,
                     "subtitleAddedVideo": final_combined_video
                 })
+    
+    # Generate metadata for each short using LLM
+    print("🤖 Generating metadata for shorts...")
+    for short in final_shorts:
+        metadata_prompt = f"""You are a YouTube Shorts content expert. Generate metadata for a short video based on the following information:
+
+Quote/Script: "{short['quote']}"
+Topic: {short['topic']}
+Virality Score: {short['virality_score']}/10
+Reason it works: {short['reason']}
+
+Generate:
+1. A catchy, clickable title (under 60 characters)
+2. A YouTube description (2-3 sentences) with 3-5 hashtags included at the end
+3. Comma-separated SEO tags (5-10 keywords, no hashtags)
+
+Make the metadata engaging and optimized for discoverability on YouTube."""
+
+        try:
+            metadata = llm_structured(metadata_prompt, ShortMetadata)
+            short['title'] = metadata.title
+            short['description'] = metadata.description
+            short['tags'] = metadata.tags
+            print(f"✅ Generated metadata for: {metadata.title}")
+        except Exception as e:
+            print(f"❌ Error generating metadata: {e}")
+            short['title'] = short['topic']
+            short['description'] = f"{short['reason']} #{short['topic'].replace(' ', '')}"
+            short['tags'] = short['topic']
     
     with open(os.path.join("shorts", "shorts.json"), "w") as f:
         json.dump(final_shorts, f)
@@ -236,4 +278,4 @@ Return JSON only.
     # trimmed_path = trim_video(file_path, start_time=0, end_time=60)
 
 
-# process_video(os.path.join("trimmed_output.mp4"), mode="combined")
+# process_video(os.path.join("trimmed_output.mp4"), mode="sequential")
