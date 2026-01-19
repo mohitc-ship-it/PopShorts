@@ -66,7 +66,7 @@ def process_video(file_path, upload=False, mode="sequential",number=4):
     {script}
 
     TASK:
-    From the script, extract 10–15 SHORTS candidates.
+    From the script, extract {number} SHORTS candidates.
 
     For EACH short, return the following fields:
 
@@ -101,7 +101,7 @@ def process_video(file_path, upload=False, mode="sequential",number=4):
     - ❌ No words outside the script
     - ✅ Use ONLY exact text spans from the script
     - ✅ If something is not explicitly stated, DO NOT include it
-    - ✅ Quotes must be suitable for a 15–60 second short when spoken
+    - ✅ Quotes must be suitable for a 25-90 second short when spoken
 
     OUTPUT FORMAT:
     Return JSON ONLY in the following structure:

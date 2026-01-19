@@ -107,9 +107,9 @@ def add_subtitles(
     if pos == "top":
         x, y = "(w-text_w)/2", str(margin)
     elif pos == "center":
-        x, y = "(w-text_w)/2", "(h-text_h)/2"
+        x, y = "(w-text_w)/2", f"(h-text_h)/2" 
     else:
-        x, y = "(w-text_w)/2", f"h-text_h-{margin}"
+        x, y = "(w-text_w)/2", f"h-text_h-{margin}-60"
 
     # ---- Build filters ----
     filters = []
@@ -180,5 +180,5 @@ if __name__ == "__main__":
         "margin": 60,
     }
 
-    add_subtitles("test.mp4", words, style, "out_line.mp4", mode="line")
-    add_subtitles("test.mp4", words, style, "out_word.mp4", mode="word")
+    add_subtitles("trim.mp4", words, style, "out_line.mp4", mode="line")
+    # add_subtitles("test.mp4", words, style, "out_word.mp4", mode="word")
